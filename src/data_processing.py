@@ -1,13 +1,24 @@
 import pandas as pd
+import glob
+import os
 
 
 def load_data(file_path):
-    """Load raw data from a CSV file."""
-    return pd.read_csv(file_path)
+    """Load raw data from JSON files."""
+    all_files = glob.glob(file_path)
+    df_list = [pd.read_json(file) for file in all_files]
+    return pd.concat(df_list, ignore_index=True)
 
 
 def clean_data(df):
     """Clean the raw data."""
+    # Print column names for debugging
+    print("Columns in the DataFrame:", df.columns)
+
+    # Rename 'ts' column to 'timestamp'
+    if "ts" in df.columns:
+        df.rename(columns={"ts": "timestamp"}, inplace=True)
+
     # Replace empty strings with NaN
     df.replace("", pd.NA, inplace=True)
 
@@ -17,20 +28,22 @@ def clean_data(df):
     # Remove duplicates
     df = df.drop_duplicates()
 
-    # Convert data types if necessary
-    # Example: Convert 'timestamp' column to datetime
-    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    # Check if 'timestamp' column exists
+    if "timestamp" in df.columns:
+        # Convert data types if necessary
+        df["timestamp"] = pd.to_datetime(df["timestamp"])
+    else:
+        raise KeyError("The 'timestamp' column is missing from the data.")
 
     return df
 
 
 def transform_data(df):
     """Transform the data."""
-    # Example: Extract date and time from timestamp
+    # Extract date from timestamp
     df["date"] = df["timestamp"].dt.date
-    df["time"] = df["timestamp"].dt.time
 
-    # Example: Aggregate data by date
+    # Aggregate data by date
     daily_streams = df.groupby("date").size().reset_index(name="streams")
 
     return daily_streams
@@ -43,7 +56,9 @@ def save_data(df, file_path):
 
 def main():
     # Load raw data
-    raw_data_path = "data/raw/spotify_streaming_data.csv"
+    raw_data_path = (
+        "data/raw/Spotify Extended Streaming History/Streaming_History_*.json"
+    )
     df = load_data(raw_data_path)
 
     # Clean data
@@ -52,8 +67,19 @@ def main():
     # Transform data
     df = transform_data(df)
 
+    # Extract the base name from the raw data path
+    base_name = (
+        os.path.basename(raw_data_path)
+        .replace("Streaming_History_", "")
+        .replace("*.json", "")
+    )
+
+    # Construct the processed data file name
+    processed_data_path = (
+        f"data/processed/spotify_streaming_data_processed_{base_name}.csv"
+    )
+
     # Save processed data
-    processed_data_path = "data/processed/spotify_streaming_data_processed.csv"
     save_data(df, processed_data_path)
 
 
