@@ -21,9 +21,16 @@ def clean_data(df):
 
     # Replace empty strings with NaN
     df.replace("", pd.NA, inplace=True)
+    print("Data before dropna clean:\n", df.head())
 
-    # Handle missing values
-    df = df.dropna()
+    # Print the count of missing values in each column
+    print("Missing values in each column:\n", df.isna().sum())
+
+    # Handle missing values, only considering specific columns
+    df = df.dropna(subset=["timestamp", "ms_played", "master_metadata_track_name"])
+
+    # Print the DataFrame after dropping missing values
+    print("Data after dropna clean:\n", df.head())
 
     # Remove duplicates
     df = df.drop_duplicates()
@@ -56,31 +63,29 @@ def save_data(df, file_path):
 
 def main():
     # Load raw data
-    raw_data_path = (
-        "data/raw/Spotify Extended Streaming History/Streaming_History_*.json"
-    )
+    raw_data_path = "data/raw/Spotify Extended Streaming History/Streaming_History_Audio_2016-2018_0.json"
     df = load_data(raw_data_path)
 
     # Clean data
     df = clean_data(df)
-
+    print("data after clean: ", df)
     # Transform data
     df = transform_data(df)
 
     # Extract the base name from the raw data path
     base_name = (
         os.path.basename(raw_data_path)
-        .replace("Streaming_History_", "")
+        .replace("Streaming_History_Audio", "")
         .replace("*.json", "")
     )
 
+    print("Base name extracted from the raw data path:", base_name)
     # Construct the processed data file name
-    processed_data_path = (
-        f"data/processed/spotify_streaming_data_processed_{base_name}.csv"
-    )
+    processed_data_path = f"data/processed/processed_{base_name}.csv"
 
     # Save processed data
     save_data(df, processed_data_path)
+    print("processed data: ", df)
 
 
 if __name__ == "__main__":
