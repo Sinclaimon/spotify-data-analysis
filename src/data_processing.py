@@ -75,13 +75,13 @@ def main():
     # Extract the base name from the raw data path
     base_name = (
         os.path.basename(raw_data_path)
-        .replace("Streaming_History_Audio", "")
+        .replace("Streaming_History_Audio_", "")
         .replace("*.json", "")
     )
 
     print("Base name extracted from the raw data path:", base_name)
     # Construct the processed data file name
-    processed_data_path = f"data/processed/processed_{base_name}.csv"
+    processed_data_path = f"data/processed/streaming_history{base_name}.csv"
 
     # Save processed data
     save_data(df, processed_data_path)
