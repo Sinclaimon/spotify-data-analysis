@@ -21,16 +21,9 @@ def clean_data(df):
 
     # Replace empty strings with NaN
     df.replace("", pd.NA, inplace=True)
-    print("Data before dropna clean:\n", df.head())
-
-    # Print the count of missing values in each column
-    print("Missing values in each column:\n", df.isna().sum())
 
     # Handle missing values, only considering specific columns
     df = df.dropna(subset=["timestamp", "ms_played", "master_metadata_track_name"])
-
-    # Print the DataFrame after dropping missing values
-    print("Data after dropna clean:\n", df.head())
 
     # Remove duplicates
     df = df.drop_duplicates()
@@ -45,8 +38,8 @@ def clean_data(df):
     return df
 
 
-def transform_data(df):
-    """Transform the data."""
+def transform_data_daily_streams(df):
+    """Transform the data into number of streams per day."""
     # Extract date from timestamp
     df["date"] = df["timestamp"].dt.date
 
@@ -68,9 +61,9 @@ def main():
 
     # Clean data
     df = clean_data(df)
-    print("data after clean: ", df)
+
     # Transform data
-    df = transform_data(df)
+    df = transform_data_daily_streams(df)
 
     # Extract the base name from the raw data path
     base_name = (
